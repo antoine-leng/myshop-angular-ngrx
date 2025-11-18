@@ -1,3 +1,11 @@
+import { provideStore } from '@ngrx/store';
+import { provideEffects } from '@ngrx/effects';
+
+import { authReducer } from './state/auth/auth.reducer';
+import { productsReducer } from './state/products/products.reducer';
+import { AuthEffects } from './state/auth/auth.effects';
+import { ProductsEffects } from './state/products/products.effects';
+
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
@@ -9,8 +17,14 @@ import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideRouter(routes),
+    provideStore({
+      auth: authReducer,
+      products: productsReducer,
+    }),
+    provideEffects([AuthEffects, ProductsEffects]),
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes),
+
   ],
 };
