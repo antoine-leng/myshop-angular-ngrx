@@ -1,2 +1,59 @@
-<h2>Login page</h2>
-<p>Ici on mettra le formulaire de connexion (username / password) un peu plus tard.</p>
+<div class="login-page">
+  <mat-card class="login-card">
+    <h2>Login</h2>
+    <p class="subtitle">
+      Connecte-toi pour accéder à My Shop (token simulé via MSW).
+    </p>
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Username</mat-label>
+        <input matInput formControlName="username" />
+        <mat-error *ngIf="form.controls.username.touched && form.controls.username.invalid">
+          Username requis
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          type="password"
+          formControlName="password"
+        />
+        <mat-error *ngIf="form.controls.password.touched && form.controls.password.invalid">
+          Mot de passe requis
+        </mat-error>
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        class="full-width"
+        [disabled]="form.invalid || (loading$ | async)"
+      >
+        <ng-container *ngIf="!(loading$ | async); else loadingTpl">
+          Se connecter
+        </ng-container>
+        <ng-template #loadingTpl>
+          <span class="btn-spinner">
+            <mat-progress-spinner
+              diameter="18"
+              mode="indeterminate"
+            ></mat-progress-spinner>
+            <span>Connexion...</span>
+          </span>
+        </ng-template>
+      </button>
+    </form>
+
+    <p class="error" *ngIf="error$ | async as error">
+      {{ error }}
+    </p>
+
+    <p class="success" *ngIf="accessToken$ | async as token">
+      Connecté (access token présent).
+    </p>
+  </mat-card>
+</div>
