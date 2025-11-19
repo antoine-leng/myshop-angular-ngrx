@@ -1,0 +1,41 @@
+.rating-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.rating-card {
+  width: 100%;
+  max-width: 500px;
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  color: #555;
+}
+
+.rating-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.error {
+  margin-top: 1rem;
+  color: #c62828;
+}
+
+.result {
+  margin-top: 1.5rem;
+}
+
+.btn-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}

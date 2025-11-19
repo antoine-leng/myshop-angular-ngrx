@@ -1,2 +1,131 @@
-<h2>Products page</h2>
-<p>Ici on affichera la liste des produits avec les filtres (page, min rating, tri, etc.).</p>
+<div class="products-page">
+  <mat-card class="products-card">
+    <h2>Products</h2>
+    <p class="subtitle">
+      Liste des produits (mock API via MSW) avec filtres simples.
+    </p>
+
+    <!-- Filtres -->
+    <form
+      [formGroup]="filtersForm"
+      (ngSubmit)="onApplyFilters()"
+      class="filters"
+    >
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Page</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          formControlName="page"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Page size</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          formControlName="pageSize"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Min rating</mat-label>
+        <input
+          matInput
+          type="number"
+          min="0"
+          max="5"
+          step="0.5"
+          formControlName="minRating"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="field">
+        <mat-label>Ordering</mat-label>
+        <mat-select formControlName="ordering">
+          <mat-option value="">(aucun)</mat-option>
+          <mat-option value="price">Price ↑</mat-option>
+          <mat-option value="-price">Price ↓</mat-option>
+          <mat-option value="created_at">Date ↑</mat-option>
+          <mat-option value="-created_at">Date ↓</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+      >
+        Appliquer les filtres
+      </button>
+    </form>
+
+    <!-- Tableau -->
+    <div class="table-wrapper">
+      <div class="table-header">
+        <span>Total: {{ totalCount$ | async }} produits</span>
+
+        <ng-container *ngIf="loading$ | async">
+          <mat-progress-spinner
+            diameter="24"
+            mode="indeterminate"
+          ></mat-progress-spinner>
+        </ng-container>
+      </div>
+
+      <table
+        mat-table
+        [dataSource]="(productsDataSource$ | async) ?? []"
+        class="mat-elevation-z2"
+      >
+        <!-- ID -->
+        <ng-container matColumnDef="id">
+          <th mat-header-cell *matHeaderCellDef> ID </th>
+          <td mat-cell *matCellDef="let product">
+            {{ product.id }}
+          </td>
+        </ng-container>
+
+        <!-- Name -->
+        <ng-container matColumnDef="name">
+          <th mat-header-cell *matHeaderCellDef> Name </th>
+          <td mat-cell *matCellDef="let product">
+            {{ product.name }}
+          </td>
+        </ng-container>
+
+        <!-- Price -->
+        <ng-container matColumnDef="price">
+          <th mat-header-cell *matHeaderCellDef> Price </th>
+          <td mat-cell *matCellDef="let product">
+            {{ product.price | number : '1.2-2' }} €
+          </td>
+        </ng-container>
+
+        <!-- Created_at -->
+        <ng-container matColumnDef="created_at">
+          <th mat-header-cell *matHeaderCellDef> Created at </th>
+          <td mat-cell *matCellDef="let product">
+            {{ product.created_at | date : 'short' }}
+          </td>
+        </ng-container>
+
+        <tr
+          mat-header-row
+          *matHeaderRowDef="displayedColumns"
+        ></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+        ></tr>
+      </table>
+
+      <p class="error" *ngIf="error$ | async as error">
+        {{ error }}
+      </p>
+    </div>
+  </mat-card>
+</div>

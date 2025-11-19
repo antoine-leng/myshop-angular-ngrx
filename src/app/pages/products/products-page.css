@@ -1,0 +1,43 @@
+.products-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.products-card {
+  width: 100%;
+  max-width: 900px;
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  color: #555;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  margin: 1.5rem 0;
+}
+
+.field {
+  min-width: 150px;
+}
+
+.table-wrapper {
+  margin-top: 1rem;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.error {
+  margin-top: 1rem;
+  color: #c62828;
+}

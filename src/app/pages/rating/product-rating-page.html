@@ -1,2 +1,65 @@
-<h2>Product rating page</h2>
-<p>Ici on pourra saisir un ID de produit et afficher sa note moyenne.</p>
+<div class="rating-page">
+  <mat-card class="rating-card">
+    <h2>Product rating</h2>
+    <p class="subtitle">
+      Saisis un ID de produit pour voir sa note moyenne.
+    </p>
+
+    <form
+      [formGroup]="form"
+      (ngSubmit)="onSubmit()"
+      class="rating-form"
+    >
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Product ID</mat-label>
+        <input
+          matInput
+          type="number"
+          min="1"
+          formControlName="productId"
+        />
+        <mat-error
+          *ngIf="
+            form.controls.productId.touched &&
+            form.controls.productId.invalid
+          "
+        >
+          ID de produit invalide
+        </mat-error>
+      </mat-form-field>
+
+      <button
+        mat-raised-button
+        color="primary"
+        type="submit"
+        [disabled]="form.invalid || loading"
+      >
+        <ng-container *ngIf="!loading; else loadingTpl">
+          Charger la note
+        </ng-container>
+        <ng-template #loadingTpl>
+          <span class="btn-spinner">
+            <mat-progress-spinner
+              diameter="18"
+              mode="indeterminate"
+            ></mat-progress-spinner>
+            <span>Chargement...</span>
+          </span>
+        </ng-template>
+      </button>
+    </form>
+
+    <p class="error" *ngIf="error">
+      {{ error }}
+    </p>
+
+    <div class="result" *ngIf="rating">
+      <h3>Résultat</h3>
+      <p>
+        Produit #{{ rating.product_id }}<br />
+        Note moyenne : {{ rating.avg_rating | number : '1.1-2' }} / 5<br />
+        Nombre d'avis : {{ rating.count }}
+      </p>
+    </div>
+  </mat-card>
+</div>
