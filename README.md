@@ -1,59 +1,166 @@
-# MyShop
+# My Shop – Angular / NgRx / Storybook
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.9.
+Projet réalisé à partir du dépôt d’exercice https://github.com/ByteElegance/456(My Shop).
 
-## Development server
+L’objectif du projet est de construire une petite application Angular
+avec :
 
-To start a local development server, run:
+- **Routing** et pages `/login`, `/shop/products`, `/shop/rating`
+- **Mock API** avec **MSW** (Mock Service Worker)
+- **State management** avec **NgRx** (`auth` & `products`)
+- **UI** avec **Angular Material**
+- **Storybook** pour les composants de présentation
 
-```bash
-ng serve
-```
+---
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
-
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+## 1. Installation
 
 ```bash
-ng generate --help
+npm install
 ```
 
-## Building
+> 💡 Le projet est prévu pour Node 20+.
+> Une version impaire (ex : Node 25) fonctionne pour l’exercice
+> mais n’est pas recommandée pour la production.
 
-To build the project run:
+---
+
+## 2. Lancer l’application
 
 ```bash
-ng build
+npm start
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Puis ouvrir :
+👉 [http://localhost:4200/](http://localhost:4200/)
 
-## Running unit tests
+### Routes principales
 
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+- `/` : page d’accueil
+- `/app` : **AppPlaceholder** (point d’entrée de l’app)
+- `/login` : **page de login**
+- `/shop/products` : **liste des produits** avec filtres
+- `/shop/rating` : **page de note** d’un produit
+- `/dev/*` : zone de test fournie par l’énoncé (MSW / produits / rating)
+
+### Login
+
+La page `/login` envoie une requête à l’API mockée :
+
+- `POST /api/auth/token/`
+
+Les identifiants de test sont visibles dans la zone `/dev/auth`
+(par exemple `demo / demo` selon la configuration MSW).
+
+Après login, un badge dans `/app` affiche :
+
+- **Logged in** si un access token est présent dans le store
+- **Logged out** sinon
+
+---
+
+## 3. Lancer Storybook
 
 ```bash
-ng test
+npm run storybook
 ```
 
-## Running end-to-end tests
+Storybook est disponible sur :
+👉 [http://localhost:6006/](http://localhost:6006/)
 
-For end-to-end (e2e) testing, run:
+Stories importantes :
 
-```bash
-ng e2e
-```
+- **Auth / Login Form**
+  - Composant formulaire de login, avec états _Default_, _Loading_, _With Error_
+  - L’action `submit` est traquée dans le panneau **Actions**
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+- **Shop / Product Card**
+  - Affiche un produit (nom, prix, date, note moyenne)
 
-## Additional Resources
+- **Shop / Products List**
+  - Grappe de `ProductCard` pour afficher une liste de produits
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+---
+
+## 4. Fonctionnalités
+
+### 4.1 Authentification
+
+- **Slice NgRx** `auth` :
+  - actions : `login`, `loginSuccess`, `loginFailure`, `refreshToken`, …
+  - reducer : stockage du token `access`, `refresh`, `loading`, `error`
+  - selectors : `selectAccessToken`, `selectAuthLoading`, `selectAuthError`, …
+
+- **Effect** `AuthEffects` :
+  - `login$` → `POST /api/auth/token/` via `ShopApiService`
+
+La page `/login` :
+
+- utilise un formulaire Material
+- dispatch `login({ username, password })`
+- affiche :
+  - un spinner quand `auth.loading === true`
+  - les erreurs éventuelles via `auth.error`
+
+### 4.2 Produits
+
+- **Slice NgRx** `products` :
+  - actions : `loadProducts`, `loadProductsSuccess`, `loadProductsFailure`
+  - reducer : `items`, `totalCount`, `loading`, `error`, dernière requête
+  - selectors : `selectProducts`, `selectProductsCount`, `selectProductsLoading`, …
+
+- **Effect** `ProductsEffects` :
+  - `loadProducts$` → `GET /api/products/` avec `URLSearchParams`
+
+La page `/shop/products` :
+
+- formulaire de filtres :
+  - `page`, `pageSize`, `minRating`, `ordering`
+
+- dispatch `loadProducts(...)`
+- table Material affichant :
+  - ID, name, price, created_at
+
+- gestion des états :
+  - spinner pendant le chargement
+  - message en cas d’erreur
+
+### 4.3 Rating d’un produit
+
+La page `/shop/rating` :
+
+- petit formulaire pour saisir un `productId`
+- appel direct au service `ShopApiService.getProductRating(id)` :
+  - `GET /api/products/:id/rating/`
+
+- affiche :
+  - l’ID produit
+  - la note moyenne (`avg_rating`)
+  - le nombre d’avis (`count`)
+
+- gestion du `loading` et des erreurs (ID invalide, etc.)
+
+---
+
+## 5. Scripts NPM
+
+Principaux scripts (définis dans `package.json`) :
+
+- `npm start` – lancer l’application Angular (`ng serve`)
+- `npm run build` – build de production
+- `npm run test` – tests unitaires (si configurés)
+- `npm run storybook` – lancer Storybook
+- `npm run build-storybook` – build statique de Storybook
+
+---
+
+## 6. Notes diverses
+
+- MSW (**Mock Service Worker**) est activé en dev via `environment.useMsw`
+  et `main.ts` qui démarre le worker.
+- Les reducers NgRx restent volontairement simples :
+  - gestion des flags `loading`
+  - stockage des données et de la dernière requête
+
+- Le code privilégie des composants de page (containers) qui utilisent NgRx
+  et des composants de présentation (dans `ui/`) testés via Storybook.
