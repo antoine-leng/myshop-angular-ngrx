@@ -1,0 +1,9 @@
+<div class="products-list">
+  <app-product-card
+    *ngFor="let p of products"
+    [name]="p.name"
+    [price]="p.price"
+    [createdAt]="p.created_at"
+    [avgRating]="p.avgRating ?? null"
+  ></app-product-card>
+</div>

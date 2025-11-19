@@ -1,0 +1,13 @@
+<mat-card class="product-card">
+  <mat-card-title>{{ name }}</mat-card-title>
+  <mat-card-subtitle>
+    {{ createdAt | date : 'mediumDate' }}
+  </mat-card-subtitle>
+
+  <mat-card-content>
+    <p class="price">{{ price | number : '1.2-2' }} €</p>
+    <p *ngIf="avgRating !== null">
+      ⭐ {{ avgRating | number : '1.1-1' }} / 5
+    </p>
+  </mat-card-content>
+</mat-card>

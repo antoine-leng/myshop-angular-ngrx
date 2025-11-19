@@ -46,6 +46,7 @@
     "@angular/build": "^20.3.9",
     "@angular/cli": "^20.3.9",
     "@angular/compiler-cli": "^20.3.0",
+    "@storybook/addon-actions": "^9.0.8",
     "@storybook/angular": "^10.0.8",
     "@tailwindcss/postcss": "^4.1.17",
     "@types/jasmine": "~5.1.0",
