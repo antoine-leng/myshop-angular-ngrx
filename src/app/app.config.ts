@@ -12,12 +12,15 @@ import {
   provideZoneChangeDetection,
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
+    provideHttpClient(),
+
     provideStore({
       auth: authReducer,
       products: productsReducer,
@@ -25,6 +28,5 @@ export const appConfig: ApplicationConfig = {
     provideEffects([AuthEffects, ProductsEffects]),
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
-
   ],
 };
