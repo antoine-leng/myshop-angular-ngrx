@@ -6,10 +6,22 @@
     
     <nav class="nav-links">
       <a routerLink="/shop/products" routerLinkActive="active">Produits</a>
-      <a routerLink="/login" routerLinkActive="active">Connexion</a>
+      <a routerLink="/wishlist" routerLinkActive="active">
+        <mat-icon class="nav-icon">favorite</mat-icon>
+        Wishlist
+      </a>
+      <a routerLink="/account/profile" routerLinkActive="active">
+        <mat-icon class="nav-icon">person</mat-icon>
+        Mon compte
+      </a>
     </nav>
     
-    <app-cart-icon></app-cart-icon>
+    <div class="header-actions">
+      <app-cart-icon></app-cart-icon>
+      <button mat-icon-button routerLink="/login" matTooltip="Connexion">
+        <mat-icon>login</mat-icon>
+      </button>
+    </div>
   </div>
 </header>
 <main class="main-content">
