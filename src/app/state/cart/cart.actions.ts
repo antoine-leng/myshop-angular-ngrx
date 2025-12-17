@@ -41,6 +41,7 @@ export const validateCartSuccess = createAction(
     shipping: number;
     taxes: number;
     grandTotal: number;
+    appliedPromos?: string[];  
   }>()
 );
 

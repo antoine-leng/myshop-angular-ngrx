@@ -13,6 +13,7 @@ export interface CartState {
     shipping: number;
     taxes: number;
     grandTotal: number;
+    appliedPromos?: string[];  
   } | null;
   validating: boolean;
   error: string | null;
