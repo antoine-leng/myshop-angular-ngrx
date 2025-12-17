@@ -4,7 +4,9 @@ import { Observable } from 'rxjs';
 import {
   ProductsQuery,
   ProductsResponse,
+  Product,
 } from '../state/products/products.actions';
+import { CartItem } from '../state/cart/cart.actions';
 
 export interface AuthResponse {
   access: string;
@@ -21,12 +23,47 @@ export interface ProductRatingResponse {
   count: number;
 }
 
+// Nouveaux types pour l'exercice 2
+export interface ProductDetailsResponse extends Product {
+  description?: string;
+  stock?: number;
+  category?: string;
+  images?: string[];
+}
+
+export interface CartValidationResponse {
+  itemsTotal: number;
+  discount: number;
+  shipping: number;
+  taxes: number;
+  grandTotal: number;
+}
+
+export interface OrderRequest {
+  items: CartItem[];
+  address: {
+    fullName: string;
+    street: string;
+    city: string;
+    postalCode: string;
+    country: string;
+  };
+}
+
+export interface OrderResponse {
+  orderId: string;
+  status: string;
+  total: number;
+  createdAt: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ShopApiService {
   constructor(private http: HttpClient) {}
 
+  // Auth endpoints (existants)
   login(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/auth/token/', {
       username,
@@ -40,6 +77,7 @@ export class ShopApiService {
     });
   }
 
+  // Products endpoints (existants)
   getProducts(query: ProductsQuery): Observable<ProductsResponse> {
     let params = new HttpParams()
       .set('page', query.page)
@@ -57,7 +95,22 @@ export class ShopApiService {
 
   getProductRating(id: number): Observable<ProductRatingResponse> {
     return this.http.get<ProductRatingResponse>(
-      `/api/products/${id}/rating/`,
+      `/api/products/${id}/rating/`
     );
+  }
+
+  // Nouveaux endpoints pour l'exercice 2
+  getProductDetails(id: number): Observable<ProductDetailsResponse> {
+    return this.http.get<ProductDetailsResponse>(`/api/products/${id}/`);
+  }
+
+  validateCart(items: CartItem[]): Observable<CartValidationResponse> {
+    return this.http.post<CartValidationResponse>('/api/cart/validate/', {
+      items,
+    });
+  }
+
+  createOrder(order: OrderRequest): Observable<OrderResponse> {
+    return this.http.post<OrderResponse>('/api/order/', order);
   }
 }
