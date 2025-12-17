@@ -1,6 +1,17 @@
-<header class="p-4 border-b">
-  <strong>My Shop</strong>
+<header class="header">
+  <div class="header-content">
+    <a routerLink="/" class="logo">
+      <strong>My Shop</strong>
+    </a>
+    
+    <nav class="nav-links">
+      <a routerLink="/shop/products" routerLinkActive="active">Produits</a>
+      <a routerLink="/login" routerLinkActive="active">Connexion</a>
+    </nav>
+    
+    <app-cart-icon></app-cart-icon>
+  </div>
 </header>
-<main class="p-4">
+<main class="main-content">
   <router-outlet></router-outlet>
 </main>

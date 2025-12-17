@@ -1,4 +1,77 @@
-/* app shell */
-main {
-  display: block;
+/* App shell with modern header */
+.header {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.logo:hover {
+  color: #1d4ed8;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-links a {
+  color: #6b7280;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.nav-links a:hover {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.nav-links a.active {
+  color: #2563eb;
+  background: #dbeafe;
+}
+
+.main-content {
+  min-height: calc(100vh - 80px);
+  background: #f9fafb;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    padding: 1rem;
+  }
+
+  .nav-links {
+    gap: 0.75rem;
+  }
+
+  .nav-links a {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+  }
 }
