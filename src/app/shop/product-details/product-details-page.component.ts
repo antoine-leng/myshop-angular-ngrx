@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Store } from '@ngrx/store';
@@ -9,11 +9,24 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule } from '@angular/forms';
 
 import { ShopApiService, ProductDetailsResponse } from '../../services/shop-api.service';
 import * as CartActions from '../../state/cart/cart.actions';
+import * as ReviewsActions from '../../state/reviews/reviews.actions';
 import { ToastService } from '../../services/toast.service';
+import { WishlistButtonComponent } from '../../ui/wishlist-button/wishlist-button.component';
+import { ReviewListComponent } from '../../ui/review-list/review-list.component';
+import { ReviewFormComponent } from '../../ui/review-form/review-form.component';
+import {
+  selectReviewsByProduct,
+  selectReviewsLoading,
+  selectReviewsSubmitting,
+  selectAverageRating,
+  selectReviewCount,
+} from '../../state/reviews/reviews.selectors';
+import { selectAccessToken } from '../../state/auth/auth.selectors';
 
 @Component({
   standalone: true,
@@ -29,7 +42,12 @@ import { ToastService } from '../../services/toast.service';
     MatInputModule,
     MatProgressSpinnerModule,
     MatChipsModule,
+    MatDividerModule,
+    WishlistButtonComponent,
+    ReviewListComponent,
+    ReviewFormComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
       .product-details-page {
@@ -71,6 +89,15 @@ import { ToastService } from '../../services/toast.service';
         font-size: 6rem;
         font-weight: 700;
         box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        position: relative;
+      }
+
+      .wishlist-overlay {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: white;
+        border-radius: 50%;
       }
 
       .product-info {
@@ -139,6 +166,30 @@ import { ToastService } from '../../services/toast.service';
         margin: 0 0 1rem 0;
       }
 
+      .reviews-section {
+        margin-top: 3rem;
+      }
+
+      .reviews-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+      }
+
+      .section-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin: 0;
+      }
+
+      .reviews-stats {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        color: #6b7280;
+      }
+
       @media (max-width: 768px) {
         .product-card {
           grid-template-columns: 1fr;
@@ -148,6 +199,12 @@ import { ToastService } from '../../services/toast.service';
         .product-image-container {
           max-width: 300px;
           margin: 0 auto;
+        }
+
+        .reviews-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 1rem;
         }
       }
     `,
@@ -161,6 +218,12 @@ import { ToastService } from '../../services/toast.service';
 
       <mat-card class="product-card" *ngIf="!loading() && product(); else loadingOrError">
         <div class="product-image-container">
+          <div class="wishlist-overlay">
+            <app-wishlist-button
+              [productId]="product()!.id"
+              [productName]="product()!.name"
+            ></app-wishlist-button>
+          </div>
           {{ product()!.name.charAt(0) }}
         </div>
 
@@ -179,7 +242,7 @@ import { ToastService } from '../../services/toast.service';
             </mat-chip-set>
           </div>
 
-          <p class="product-price">{{ product()!.price | number: '1.2-2' }} €</p>
+          <p class="product-price">{{ product()!.price | number : '1.2-2' }} €</p>
 
           <p class="product-description">
             {{ product()!.description || 'Aucune description disponible.' }}
@@ -211,6 +274,48 @@ import { ToastService } from '../../services/toast.service';
         </div>
       </mat-card>
 
+      <!-- Reviews Section -->
+      <div class="reviews-section" *ngIf="product()">
+        <div class="reviews-header">
+          <h2 class="section-title">Avis clients</h2>
+          <div class="reviews-stats" *ngIf="(reviewCount$ | async)! > 0">
+            <mat-icon style="color: #f59e0b;">star</mat-icon>
+            <span style="font-size: 1.25rem; font-weight: 600;">
+              {{ averageRating$ | async | number : '1.1-1' }}/5
+            </span>
+            <span>({{ reviewCount$ | async }} avis)</span>
+          </div>
+        </div>
+
+        <mat-divider style="margin-bottom: 2rem;"></mat-divider>
+
+        <!-- Review Form (si connecté) -->
+        <div *ngIf="isLoggedIn$ | async" style="margin-bottom: 2rem;">
+          <app-review-form
+            (submitReview)="onSubmitReview($event)"
+          ></app-review-form>
+        </div>
+
+        <div *ngIf="!(isLoggedIn$ | async)" style="text-align: center; padding: 2rem; background: #f9fafb; border-radius: 8px; margin-bottom: 2rem;">
+          <p style="margin: 0 0 1rem 0; color: #6b7280;">
+            Connectez-vous pour laisser un avis
+          </p>
+          <button mat-raised-button color="primary" routerLink="/login">
+            Se connecter
+          </button>
+        </div>
+
+        <!-- Reviews List -->
+        <div *ngIf="reviewsLoading$ | async" style="text-align: center; padding: 2rem;">
+          <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+        </div>
+
+        <app-review-list
+          *ngIf="!(reviewsLoading$ | async)"
+          [reviews]="(reviews$ | async) || []"
+        ></app-review-list>
+      </div>
+
       <ng-template #loadingOrError>
         <div class="loading-container" *ngIf="loading()">
           <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
@@ -238,11 +343,21 @@ export class ProductDetailsPage implements OnInit {
   readonly error = signal<string | null>(null);
 
   quantity = 1;
+  productId = 0;
+
+  readonly reviews$ = this.store.select(selectReviewsByProduct(this.productId));
+  readonly reviewsLoading$ = this.store.select(selectReviewsLoading);
+  readonly reviewsSubmitting$ = this.store.select(selectReviewsSubmitting);
+  readonly averageRating$ = this.store.select(selectAverageRating(this.productId));
+  readonly reviewCount$ = this.store.select(selectReviewCount(this.productId));
+  readonly isLoggedIn$ = this.store.select(selectAccessToken);
 
   ngOnInit(): void {
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (id) {
+      this.productId = id;
       this.loadProduct(id);
+      this.store.dispatch(ReviewsActions.loadReviews({ productId: id }));
     } else {
       this.error.set('ID de produit invalide');
     }
@@ -300,5 +415,17 @@ export class ProductDetailsPage implements OnInit {
     if (stock === 0) return 'warn';
     if (stock < 10) return 'accent';
     return 'primary';
+  }
+
+  onSubmitReview(formValue: { rating: number; comment: string }): void {
+    this.store.dispatch(
+      ReviewsActions.submitReview({
+        productId: this.productId,
+        rating: formValue.rating,
+        comment: formValue.comment,
+      })
+    );
+
+    this.toast.success('Votre avis a été publié avec succès !');
   }
 }
