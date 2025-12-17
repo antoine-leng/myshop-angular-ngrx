@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -23,6 +23,7 @@ import * as CartActions from '../../state/cart/cart.actions';
 import { ShopApiService } from '../../services/shop-api.service';
 import { ToastService } from '../../services/toast.service';
 import { CartItemComponent } from '../../ui/cart-item/cart-item.component';
+import { PromoCodeInputComponent } from '../../ui/promo-code-input/promo-code-input.component';
 
 @Component({
   standalone: true,
@@ -39,7 +40,9 @@ import { CartItemComponent } from '../../ui/cart-item/cart-item.component';
     MatIconModule,
     MatProgressSpinnerModule,
     CartItemComponent,
+    PromoCodeInputComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styles: [
     `
       .checkout-page {
@@ -85,6 +88,36 @@ import { CartItemComponent } from '../../ui/cart-item/cart-item.component';
         border-top: 2px solid #e5e7eb;
         padding-top: 1rem;
         margin-top: 0.5rem;
+      }
+
+      .summary-row.discount {
+        color: #059669;
+      }
+
+      .summary-row.shipping {
+        color: #2563eb;
+      }
+
+      .promo-section {
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+      }
+
+      .applied-promos {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+
+      .promo-chip {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.875rem;
+        font-weight: 500;
       }
 
       .address-form {
@@ -159,7 +192,7 @@ import { CartItemComponent } from '../../ui/cart-item/cart-item.component';
 
       <mat-card class="stepper-card">
         <mat-stepper [linear]="true" #stepper>
-          <!-- Étape 1: Récapitulatif du panier -->
+          <!-- Étape 1: Récapitulatif + Codes promo -->
           <mat-step label="Récapitulatif">
             <div class="step-content">
               <h2>Votre panier ({{ cartCount$ | async }} articles)</h2>
@@ -179,11 +212,11 @@ import { CartItemComponent } from '../../ui/cart-item/cart-item.component';
                   <span>{{ (cartTotal$ | async) | number: '1.2-2' }} €</span>
                 </div>
                 <ng-container *ngIf="validation$ | async as validation">
-                  <div class="summary-row" *ngIf="validation.discount > 0">
+                  <div class="summary-row discount" *ngIf="validation.discount > 0">
                     <span>Réduction</span>
                     <span>-{{ validation.discount | number: '1.2-2' }} €</span>
                   </div>
-                  <div class="summary-row">
+                  <div class="summary-row shipping">
                     <span>Livraison</span>
                     <span *ngIf="validation.shipping === 0">Gratuite</span>
                     <span *ngIf="validation.shipping > 0">
@@ -198,7 +231,20 @@ import { CartItemComponent } from '../../ui/cart-item/cart-item.component';
                     <span>Total</span>
                     <span>{{ validation.grandTotal | number: '1.2-2' }} €</span>
                   </div>
+
+                  <div class="applied-promos" *ngIf="validation.appliedPromos && validation.appliedPromos.length > 0">
+                    <span class="promo-chip" *ngFor="let promo of validation.appliedPromos">
+                      ✓ {{ promo }}
+                    </span>
+                  </div>
                 </ng-container>
+
+                <!-- Code Promo -->
+                <div class="promo-section">
+                  <app-promo-code-input
+                    (applyPromoCode)="onApplyPromoCode($event)"
+                  ></app-promo-code-input>
+                </div>
               </div>
 
               <div style="margin-top: 2rem;">
@@ -212,7 +258,7 @@ import { CartItemComponent } from '../../ui/cart-item/cart-item.component';
             </div>
           </mat-step>
 
-          <!-- Étape 2: Adresse de livraison -->
+          <!-- Étape 2: Adresse -->
           <mat-step [stepControl]="addressForm" label="Adresse">
             <div class="step-content">
               <h2>Adresse de livraison</h2>
@@ -340,6 +386,7 @@ export class CheckoutPage implements OnInit {
 
   readonly submitting = signal(false);
   readonly orderId = signal<string | null>(null);
+  readonly appliedPromoCode = signal<string | null>(null);
 
   readonly addressForm = this.fb.nonNullable.group({
     fullName: ['', Validators.required],
@@ -350,20 +397,49 @@ export class CheckoutPage implements OnInit {
   });
 
   ngOnInit(): void {
-    // Valider le panier pour obtenir les frais
     this.store.dispatch(CartActions.validateCart());
   }
 
   onQuantityChange(productId: number, quantity: number): void {
     this.store.dispatch(CartActions.updateQuantity({ productId, quantity }));
-    // Revalider après changement
-    this.store.dispatch(CartActions.validateCart());
+    setTimeout(() => this.validateWithPromo(), 100);
   }
 
   onRemoveItem(productId: number): void {
     this.store.dispatch(CartActions.removeItem({ productId }));
     this.toast.success('Produit retiré du panier');
-    this.store.dispatch(CartActions.validateCart());
+    setTimeout(() => this.validateWithPromo(), 100);
+  }
+
+  onApplyPromoCode(code: string): void {
+    this.appliedPromoCode.set(code);
+    this.validateWithPromo();
+    this.toast.success(`Code promo ${code} appliqué`);
+  }
+
+  validateWithPromo(): void {
+    const promoCode = this.appliedPromoCode();
+    
+    // On recharge la validation avec le code promo
+    let items: any[] = [];
+    this.cartItems$.subscribe((val) => (items = val)).unsubscribe();
+
+    this.api.validateCart(items, promoCode || undefined).subscribe({
+      next: (response) => {
+        this.store.dispatch(
+          CartActions.validateCartSuccess({
+            itemsTotal: response.itemsTotal,
+            discount: response.discount,
+            shipping: response.shipping,
+            taxes: response.taxes,
+            grandTotal: response.grandTotal,
+          })
+        );
+      },
+      error: (err) => {
+        this.toast.error(err?.error?.detail || 'Erreur lors de la validation');
+      },
+    });
   }
 
   submitOrder(): void {
@@ -374,25 +450,32 @@ export class CheckoutPage implements OnInit {
 
     this.submitting.set(true);
 
-    // Récupérer les items et l'adresse
+    // Récupérer items et adresse
     let items: any[] = [];
     this.cartItems$.subscribe((val) => (items = val)).unsubscribe();
 
     const address = this.addressForm.getRawValue();
+    const promoCode = this.appliedPromoCode();
 
-    this.api.createOrder({ items, address }).subscribe({
-      next: (response) => {
-        this.submitting.set(false);
-        this.orderId.set(response.orderId);
-        this.toast.success('Commande validée avec succès !');
-        
-        // Vider le panier
-        this.store.dispatch(CartActions.clearCart());
-      },
-      error: (err) => {
-        this.submitting.set(false);
-        this.toast.error(err?.error?.detail || 'Erreur lors de la commande');
-      },
-    });
+    this.api
+      .createOrder({
+        items,
+        address,
+        promoCode: promoCode || undefined,
+      })
+      .subscribe({
+        next: (response) => {
+          this.submitting.set(false);
+          this.orderId.set(response.orderId);
+          this.toast.success('Commande validée avec succès !');
+
+          // Vider le panier
+          this.store.dispatch(CartActions.clearCart());
+        },
+        error: (err) => {
+          this.submitting.set(false);
+          this.toast.error(err?.error?.detail || 'Erreur lors de la commande');
+        },
+      });
   }
 }
