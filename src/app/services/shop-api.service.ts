@@ -7,6 +7,9 @@ import {
   Product,
 } from '../state/products/products.actions';
 import { CartItem } from '../state/cart/cart.actions';
+import { UserProfile, OrderSummary, OrderDetails } from '../state/user/user.actions';
+import { Review } from '../state/reviews/reviews.actions';
+import { AdminStats } from '../state/admin/admin.actions';
 
 export interface AuthResponse {
   access: string;
@@ -23,10 +26,10 @@ export interface ProductRatingResponse {
   count: number;
 }
 
-// Nouveaux types pour l'exercice 2
 export interface ProductDetailsResponse extends Product {
   description?: string;
   stock?: number;
+  lowStockThreshold?: number;
   category?: string;
   images?: string[];
 }
@@ -37,6 +40,7 @@ export interface CartValidationResponse {
   shipping: number;
   taxes: number;
   grandTotal: number;
+  appliedPromos?: string[];  
 }
 
 export interface OrderRequest {
@@ -48,6 +52,7 @@ export interface OrderRequest {
     postalCode: string;
     country: string;
   };
+  promoCode?: string;  
 }
 
 export interface OrderResponse {
@@ -57,13 +62,17 @@ export interface OrderResponse {
   createdAt: string;
 }
 
+export interface WishlistSyncResponse {
+  productIds: number[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
 export class ShopApiService {
   constructor(private http: HttpClient) {}
 
-  // Auth endpoints (existants)
+  // ========== Auth endpoints ==========
   login(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>('/api/auth/token/', {
       username,
@@ -77,7 +86,7 @@ export class ShopApiService {
     });
   }
 
-  // Products endpoints (existants)
+  // ========== Products endpoints ==========
   getProducts(query: ProductsQuery): Observable<ProductsResponse> {
     let params = new HttpParams()
       .set('page', query.page)
@@ -99,18 +108,75 @@ export class ShopApiService {
     );
   }
 
-  // Nouveaux endpoints pour l'exercice 2
   getProductDetails(id: number): Observable<ProductDetailsResponse> {
     return this.http.get<ProductDetailsResponse>(`/api/products/${id}/`);
   }
 
-  validateCart(items: CartItem[]): Observable<CartValidationResponse> {
+  // ========== Cart endpoints ==========
+  validateCart(items: CartItem[], promoCode?: string): Observable<CartValidationResponse> {
     return this.http.post<CartValidationResponse>('/api/cart/validate/', {
       items,
+      promoCode,  
     });
+  }
+
+  validateStock(items: CartItem[]): Observable<{ valid: boolean; message?: string }> {
+    return this.http.post<{ valid: boolean; message?: string }>(
+      '/api/cart/validate-stock/',
+      { items }
+    );
   }
 
   createOrder(order: OrderRequest): Observable<OrderResponse> {
     return this.http.post<OrderResponse>('/api/order/', order);
+  }
+
+  // ========== User endpoints ==========
+  getUserProfile(): Observable<UserProfile> {
+    return this.http.get<UserProfile>('/api/me/');
+  }
+
+  updateUserProfile(updates: Partial<UserProfile>): Observable<UserProfile> {
+    return this.http.patch<UserProfile>('/api/me/', updates);
+  }
+
+  getUserOrders(): Observable<OrderSummary[]> {
+    return this.http.get<OrderSummary[]>('/api/me/orders/');
+  }
+
+  getOrderDetails(orderId: string): Observable<OrderDetails> {
+    return this.http.get<OrderDetails>(`/api/orders/${orderId}/`);
+  }
+
+  // ========== Wishlist endpoints ==========
+  getWishlist(): Observable<{ productIds: number[] }> {
+    return this.http.get<{ productIds: number[] }>('/api/me/wishlist/');
+  }
+
+  syncWishlist(productIds: number[]): Observable<WishlistSyncResponse> {
+    return this.http.post<WishlistSyncResponse>('/api/me/wishlist/', {
+      productIds,
+    });
+  }
+
+  // ========== Reviews endpoints ==========
+  getProductReviews(productId: number): Observable<Review[]> {
+    return this.http.get<Review[]>(`/api/products/${productId}/reviews/`);
+  }
+
+  submitProductReview(
+    productId: number,
+    rating: number,
+    comment: string
+  ): Observable<Review> {
+    return this.http.post<Review>(`/api/products/${productId}/reviews/`, {
+      rating,
+      comment,
+    });
+  }
+
+  // ========== Admin endpoints ==========
+  getAdminStats(): Observable<AdminStats> {
+    return this.http.get<AdminStats>('/api/admin/stats/');
   }
 }
