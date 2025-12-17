@@ -1,9 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { map } from 'rxjs';
 import { MatCardModule } from '@angular/material/card';
@@ -13,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 
 import * as ProductsActions from '../../state/products/products.actions';
 import {
@@ -29,6 +28,7 @@ import {
   styleUrl: './products-page.css',
   imports: [
     CommonModule,
+    RouterLink,
     ReactiveFormsModule,
     MatCardModule,
     MatFormFieldModule,
@@ -37,22 +37,20 @@ import {
     MatButtonModule,
     MatTableModule,
     MatProgressSpinnerModule,
+    MatIconModule,
   ],
 })
-
 export class ProductsPage implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(Store);
 
-  readonly displayedColumns = ['id', 'name', 'price', 'created_at'];
+  readonly displayedColumns = ['id', 'name', 'price', 'created_at', 'actions'];
 
   readonly products$ = this.store.select(selectProducts);
   readonly totalCount$ = this.store.select(selectProductsCount);
   readonly loading$ = this.store.select(selectProductsLoading);
   readonly error$ = this.store.select(selectProductsError);
-  readonly productsDataSource$ = this.products$.pipe(
-    map((items) => items ?? []),
-  );
+  readonly productsDataSource$ = this.products$.pipe(map((items) => items ?? []));
 
   readonly filtersForm = this.fb.nonNullable.group({
     page: 1,
@@ -66,8 +64,7 @@ export class ProductsPage implements OnInit {
   }
 
   loadProducts() {
-    const { page, pageSize, minRating, ordering } =
-      this.filtersForm.getRawValue();
+    const { page, pageSize, minRating, ordering } = this.filtersForm.getRawValue();
 
     this.store.dispatch(
       ProductsActions.loadProducts({
@@ -75,7 +72,7 @@ export class ProductsPage implements OnInit {
         pageSize,
         minRating: minRating || undefined,
         ordering: ordering || undefined,
-      }),
+      })
     );
   }
 
