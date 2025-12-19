@@ -116,12 +116,13 @@ import { ToastService } from '../../services/toast.service';
             <h2 class="section-title">Informations personnelles</h2>
 
             <div class="form-row">
-              <mat-form-field appearance="outline">
+              <!-- 🔧 CHANGEMENT: appearance="fill" au lieu de "outline" -->
+              <mat-form-field appearance="fill">
                 <mat-label>Nom d'utilisateur</mat-label>
                 <input matInput formControlName="username" readonly />
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="fill">
                 <mat-label>Email</mat-label>
                 <input matInput type="email" formControlName="email" />
                 <mat-error
@@ -137,7 +138,7 @@ import { ToastService } from '../../services/toast.service';
               </mat-form-field>
             </div>
 
-            <mat-form-field appearance="outline" class="form-field-full">
+            <mat-form-field appearance="fill" class="form-field-full">
               <mat-label>Nom complet</mat-label>
               <input matInput formControlName="fullName" />
             </mat-form-field>
@@ -147,24 +148,24 @@ import { ToastService } from '../../services/toast.service';
           <div class="form-section" formGroupName="defaultAddress">
             <h2 class="section-title">Adresse par défaut</h2>
 
-            <mat-form-field appearance="outline" class="form-field-full">
+            <mat-form-field appearance="fill" class="form-field-full">
               <mat-label>Rue</mat-label>
               <input matInput formControlName="street" />
             </mat-form-field>
 
             <div class="form-row">
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="fill">
                 <mat-label>Code postal</mat-label>
                 <input matInput formControlName="postalCode" />
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="fill">
                 <mat-label>Ville</mat-label>
                 <input matInput formControlName="city" />
               </mat-form-field>
             </div>
 
-            <mat-form-field appearance="outline" class="form-field-full">
+            <mat-form-field appearance="fill" class="form-field-full">
               <mat-label>Pays</mat-label>
               <input matInput formControlName="country" />
             </mat-form-field>
@@ -178,7 +179,7 @@ import { ToastService } from '../../services/toast.service';
               Recevoir la newsletter
             </mat-slide-toggle>
 
-            <mat-form-field appearance="outline" class="form-field-full" style="margin-top: 1rem;">
+            <mat-form-field appearance="fill" class="form-field-full" style="margin-top: 1rem;">
               <mat-label>Note minimale par défaut (filtres produits)</mat-label>
               <input
                 matInput
@@ -276,17 +277,15 @@ export class ProfilePage implements OnInit {
 
     const formValue = this.profileForm.getRawValue();
     
-    // Créer l'objet updates en gérant les valeurs null
     const updates: Partial<UserProfile> = {
       email: formValue.email,
       fullName: formValue.fullName || undefined,
       preferences: {
-        newsletter: formValue.preferences.newsletter ?? false,  // ← FIX
+        newsletter: formValue.preferences.newsletter ?? false,
         defaultMinRating: formValue.preferences.defaultMinRating || undefined,
       },
     };
 
-    // Ajouter defaultAddress seulement si au moins un champ est rempli
     const hasAddress = 
       formValue.defaultAddress.street ||
       formValue.defaultAddress.postalCode ||

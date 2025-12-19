@@ -6,7 +6,7 @@
     </p>
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" class="login-form">
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Username</mat-label>
         <input matInput formControlName="username" />
         <mat-error *ngIf="form.controls.username.touched && form.controls.username.invalid">
@@ -14,7 +14,7 @@
         </mat-error>
       </mat-form-field>
 
-      <mat-form-field appearance="outline" class="full-width">
+      <mat-form-field appearance="fill" class="full-width">
         <mat-label>Password</mat-label>
         <input
           matInput

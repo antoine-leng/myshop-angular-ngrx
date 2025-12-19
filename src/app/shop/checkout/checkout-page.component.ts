@@ -264,7 +264,7 @@ import { PromoCodeInputComponent } from '../../ui/promo-code-input/promo-code-in
               <h2>Adresse de livraison</h2>
 
               <form [formGroup]="addressForm" class="address-form">
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="fill">
                   <mat-label>Nom complet</mat-label>
                   <input matInput formControlName="fullName" />
                   <mat-error *ngIf="addressForm.controls.fullName.hasError('required')">
@@ -272,7 +272,7 @@ import { PromoCodeInputComponent } from '../../ui/promo-code-input/promo-code-in
                   </mat-error>
                 </mat-form-field>
 
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="fill">
                   <mat-label>Adresse</mat-label>
                   <input matInput formControlName="street" />
                   <mat-error *ngIf="addressForm.controls.street.hasError('required')">
@@ -281,7 +281,7 @@ import { PromoCodeInputComponent } from '../../ui/promo-code-input/promo-code-in
                 </mat-form-field>
 
                 <div class="form-row">
-                  <mat-form-field appearance="outline">
+                  <mat-form-field appearance="fill">
                     <mat-label>Code postal</mat-label>
                     <input matInput formControlName="postalCode" />
                     <mat-error *ngIf="addressForm.controls.postalCode.hasError('required')">
@@ -289,7 +289,7 @@ import { PromoCodeInputComponent } from '../../ui/promo-code-input/promo-code-in
                     </mat-error>
                   </mat-form-field>
 
-                  <mat-form-field appearance="outline">
+                  <mat-form-field appearance="fill">
                     <mat-label>Ville</mat-label>
                     <input matInput formControlName="city" />
                     <mat-error *ngIf="addressForm.controls.city.hasError('required')">
@@ -298,7 +298,7 @@ import { PromoCodeInputComponent } from '../../ui/promo-code-input/promo-code-in
                   </mat-form-field>
                 </div>
 
-                <mat-form-field appearance="outline">
+                <mat-form-field appearance="fill">
                   <mat-label>Pays</mat-label>
                   <input matInput formControlName="country" />
                   <mat-error *ngIf="addressForm.controls.country.hasError('required')">
@@ -420,7 +420,6 @@ export class CheckoutPage implements OnInit {
   validateWithPromo(): void {
     const promoCode = this.appliedPromoCode();
     
-    // On recharge la validation avec le code promo
     let items: any[] = [];
     this.cartItems$.subscribe((val) => (items = val)).unsubscribe();
 
@@ -450,7 +449,6 @@ export class CheckoutPage implements OnInit {
 
     this.submitting.set(true);
 
-    // Récupérer items et adresse
     let items: any[] = [];
     this.cartItems$.subscribe((val) => (items = val)).unsubscribe();
 
@@ -469,7 +467,6 @@ export class CheckoutPage implements OnInit {
           this.orderId.set(response.orderId);
           this.toast.success('Commande validée avec succès !');
 
-          // Vider le panier
           this.store.dispatch(CartActions.clearCart());
         },
         error: (err) => {

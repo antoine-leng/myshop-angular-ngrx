@@ -99,7 +99,7 @@ export interface ReviewFormValue {
           <span style="color: #6b7280; margin-left: 0.5rem;">{{ selectedRating }}/5</span>
         </div>
 
-        <mat-form-field appearance="outline" style="width: 100%;">
+        <mat-form-field appearance="fill" style="width: 100%;">
           <mat-label>Votre commentaire</mat-label>
           <textarea
             matInput

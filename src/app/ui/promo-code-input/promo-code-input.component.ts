@@ -51,7 +51,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   template: `
     <div>
       <div class="promo-container">
-        <mat-form-field appearance="outline" class="promo-field">
+        <mat-form-field appearance="fill" class="promo-field">
           <mat-label>Code promo</mat-label>
           <input
             matInput
@@ -106,7 +106,6 @@ export class PromoCodeInputComponent {
 
     this.applyPromoCode.emit(this.promoCode);
 
-    // Simuler une réponse
     setTimeout(() => {
       this.applying.set(false);
       if (this.promoCode === 'INVALID') {
